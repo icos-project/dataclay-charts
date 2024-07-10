@@ -1,0 +1,19 @@
+1. Run applications within kubernetes through the Service created in this chart.
+
+To get the list of available services:
+
+kubectl get svc \
+    --namespace {{ .Release.Namespace }} \
+    --selector "app=mds"
+
+And an application inside kubernetes can use dataClay by using as host this:
+
+    from dataclay import Client
+    client = Client(host="mds-dataclay", 
+                    username="testuser",
+                    password="s3cret", 
+                    dataset="testdata")
+    client.start()
+
+The service mds-dataclay is the default, but it may differ if you changed chart values.
+Same happens with dataClay credentials such as username, password and dataset.

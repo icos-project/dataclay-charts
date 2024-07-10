@@ -1,0 +1,54 @@
+{{- if .Values.proxy.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dataclay-charts.name" . }}-proxy
+  labels:
+    app: proxy
+    {{- include "dataclay-charts.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.mds.replicaCount }}
+  selector:
+    matchLabels:
+      app: proxy
+      {{- include "dataclay-charts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml (merge .Values.globalPodAnnotations .Values.proxy.podAnnotations) | nindent 8 }}
+      labels:
+        app: proxy
+        {{- include "dataclay-charts.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      serviceAccountName: {{ include "dataclay-charts.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml (merge .Values.globalPodSecurityContext .Values.proxy.podSecurityContext) | nindent 8 }}
+      containers:
+        - name: proxy-{{ .Chart.Name }}
+          securityContext:
+            {{- toYaml (merge .Values.globalSecurityContext .Values.proxy.securityContext) | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command: ["python", "-m", "dataclay.proxy"]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.proxy.service.port }}
+              protocol: TCP
+          env:
+            - name: DATACLAY_PROXY_PORT
+              value: "{{ .Values.proxy.service.port }}"
+            - name: DATACLAY_PROXY_MDS_HOST
+              value: "{{ include "dataclay-charts.name" . }}-mds"
+            - name: DATACLAY_KV_HOST
+              value: "{{ include "dataclay-charts.name" . }}-redis"
+          resources:
+            {{- toYaml .Values.proxy.resources | nindent 12 }}
+      nodeSelector:
+        {{- toYaml (merge .Values.globalNodeSelector .Values.proxy.nodeSelector) | nindent 8 }}
+      affinity:
+        {{- toYaml (merge .Values.globalAffinity .Values.proxy.affinity) | nindent 8 }}
+      tolerations: 
+        {{- concat .Values.globalTolerations .Values.proxy.tolerations | default (list) | uniq | toYaml | nindent 8 }}
+{{- end}}

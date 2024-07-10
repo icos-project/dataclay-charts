@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "dataclay-charts.name" . }}-redis
+  labels:
+    app: redis
+    {{- include "dataclay-charts.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ include "dataclay-charts.name" . }}-redis
+  selector:
+    matchLabels:
+      app: redis
+      {{- include "dataclay-charts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: redis
+        {{- include "dataclay-charts.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            {{- if .Values.redis.persistence.enabled }}              
+            - name: redis-data
+              mountPath: /data
+            {{- end }}
+            - name: config-volume
+              mountPath: /usr/local/etc/redis
+      volumes:
+        - name: config-volume
+          configMap:
+            name: redis-config
+{{- if .Values.redis.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: [{{ .Values.redis.persistence.accessMode }}]
+        storageClassName: {{ .Values.redis.persistence.storageClass | default "standard" }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size }}
+{{- end }}

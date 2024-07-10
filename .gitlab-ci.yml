@@ -1,0 +1,9 @@
+include:
+  - project: 'resengit/gitlab/pipeline-helpers'
+    ref: 'main'
+    file: '/pipelines/helm-chart.yaml'
+
+  # variables:
+  #   PH_HELM_CHART_FOLDER: ...
+  #   PH_HELM_PRE_RELEASES_BRANCH: ...
+  

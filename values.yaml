@@ -1,0 +1,142 @@
+# Default values for dataclay-charts.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  # -- Repository with the dataClay image.
+  # Consider the public repo at Docker Hub alexbarcelo/dataclay-icos if you need to perform
+  # some development or testing locally (e.g. on minikube, in your laptop).
+  repository: harbor.res.eng.it/icos-private/data-management/dataclay-images/main
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the name template
+  name: ""
+
+persistence:
+  # -- By default, allow dataClay backends to have some kind of persistence
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  # -- Required storage will depend on the datasets used by the applications
+  size: 10Gi
+
+dataclayCredentials:
+  # -- User for basic auth to dataClay services
+  username: testuser
+  # -- Password for basic auth to dataClay services
+  password: s3cret
+  # -- Default dataset to use for storing objects (other can be defined on runtime)
+  dataset: testdata
+
+globalPodAnnotations: {}
+globalPodSecurityContext: {}
+  # fsGroup: 2000
+globalSecurityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+globalNodeSelector: {}
+globalTolerations: []
+globalAffinity: {}
+
+mds:
+  replicaCount: 1
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  service:
+    type: ClusterIP
+    port: 16587
+  resources: {}
+    # By default, helm recommends not to specify default resources in the chart defaults.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+backends:
+  replicaCount: 2
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  service:
+    type: ClusterIP
+    port: 6867
+  resources: {}
+    # By default, helm recommends not to specify default resources in the chart defaults.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+proxy:
+  enabled: true
+  replicaCount: 1
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  service:
+    type: ClusterIP
+    port: 8676
+  resources: {}
+    # By default, helm recommends not to specify default resources in the chart defaults.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+model_bootstrap:
+  # -- Bootstrap the dataClay service with one or more source code data models
+  enabled: true
+  sources:    
+  - # -- Descriptive name
+    name: intelligence-model
+    # Image with data models. It will be run as an initContainer
+    repository: harbor.res.eng.it/icos-private/ia/coordination
+    # Pull policy for the image (probably you want Always if using `latest` tag)
+    pullPolicy: IfNotPresent
+    tag: v1.3.1
+    # -- Path to the source code in the repository
+    base_path: /home/bentoml/bento/src
+    # -- Name of the Python package with the model (must be a folder within the base_path)
+    model_folder: model
+
+redis:
+  image:
+    repository: "redis"
+    tag: "7.2-alpine"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi

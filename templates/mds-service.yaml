@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dataclay-charts.name" . }}-mds
+  labels:
+    app: mds
+    {{- include "dataclay-charts.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.mds.service.type }}
+  ports:
+    - port: {{ .Values.mds.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    app: mds
+    {{- include "dataclay-charts.selectorLabels" . | nindent 4 }}
